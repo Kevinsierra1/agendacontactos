@@ -1,32 +1,22 @@
-import { postSucursal, patchSucursal, deleteSucursal } from '../../../Apis/contact/branch/branchApi.js';
+import { postCompania, patchCompania, deleteCompania } from '../../../Apis/contact/companies/companyApi.js';
 import { getCiudades } from '../../../Apis/contact/ciudad/citiesApi.js';
-import { getCompanias } from '../../../Apis/contact/companies/companyApi.js';
 
-export class RegSucursal extends HTMLElement {
+export class RegCompania extends HTMLElement {
   constructor() {
     super();
     this.ciudades = [];
-    this.companias = [];
     this.render();
-    this.cargarDatos();
+    this.cargarCiudades();
     this.setupEvents();
     this.disableFrm(true);
   }
 
-  async cargarDatos() {
+  async cargarCiudades() {
     try {
-      const [ciudadesData, companiasData] = await Promise.all([
-        getCiudades(),
-        getCompanias()
-      ]);
-      
-      this.ciudades = ciudadesData;
-      this.companias = companiasData;
-      
+      this.ciudades = await getCiudades();
       this.llenarSelectCiudades();
-      this.llenarSelectCompanias();
     } catch (error) {
-      console.error('Error al cargar datos:', error);
+      console.error('Error al cargar ciudades:', error);
     }
   }
 
@@ -36,7 +26,7 @@ export class RegSucursal extends HTMLElement {
     if (this.ciudades.length === 0) {
       select.innerHTML = '<option value="">No hay ciudades registradas</option>';
       select.disabled = true;
-      this.mostrarAlertaCiudades();
+      this.mostrarAlerta();
       return;
     }
 
@@ -45,45 +35,17 @@ export class RegSucursal extends HTMLElement {
         `<option value="${ciudad.id}">${ciudad.nombreCiudad}</option>`
       ).join('');
     select.disabled = false;
-    this.ocultarAlertaCiudades();
+    this.ocultarAlerta();
   }
 
-  llenarSelectCompanias() {
-    const select = this.querySelector('#companiaId');
-    
-    if (this.companias.length === 0) {
-      select.innerHTML = '<option value="">No hay compañías registradas</option>';
-      select.disabled = true;
-      this.mostrarAlertaCompanias();
-      return;
-    }
-
-    select.innerHTML = '<option value="">Seleccione una compañía</option>' +
-      this.companias.map(compania => 
-        `<option value="${compania.id}">${compania.nombreCompania}</option>`
-      ).join('');
-    select.disabled = false;
-    this.ocultarAlertaCompanias();
-  }
-
-  mostrarAlertaCiudades() {
-    const alerta = this.querySelector('#alertaCiudades');
-    if (alerta) alerta.style.display = 'block';
-  }
-
-  ocultarAlertaCiudades() {
-    const alerta = this.querySelector('#alertaCiudades');
-    if (alerta) alerta.style.display = 'none';
-  }
-
-  mostrarAlertaCompanias() {
+  mostrarAlerta() {
     const alerta = this.querySelector('#alertaCompanias');
-    if (alerta) alerta.style.display = 'block';
+    alerta.style.display = 'block';
   }
 
-  ocultarAlertaCompanias() {
+  ocultarAlerta() {
     const alerta = this.querySelector('#alertaCompanias');
-    if (alerta) alerta.style.display = 'none';
+    alerta.style.display = 'none';
   }
 
   render() {
@@ -93,56 +55,40 @@ export class RegSucursal extends HTMLElement {
       </style>
       <div class="card mt-3">
         <div class="card-header">
-          Registro de Sucursal <span class="badge rounded-pill text-bg-primary" id="idView"></span>
+          Registro de Compañía <span class="badge rounded-pill text-bg-primary" id="idView"></span>
         </div>
         <div class="card-body">
-          <div class="alert alert-warning" role="alert" id="alertaCiudades" style="display:none;">
-            <strong>¡Atención!</strong> No hay ciudades disponibles. Debe registrar al menos una ciudad antes de crear una sucursal.
-          </div>
           <div class="alert alert-warning" role="alert" id="alertaCompanias" style="display:none;">
-            <strong>¡Atención!</strong> No hay compañías disponibles. Debe registrar al menos una compañía antes de crear una sucursal.
+            <strong>¡Atención!</strong> No hay ciudades disponibles. Debe registrar al menos una ciudad antes de crear una compañía.
           </div>
-          <form id="frmSucursal">
+          <form id="frmCompania">
             <div class="row">
               <div class="col-md-6 mb-3">
-                <label for="nitSucursal" class="form-label">NIT de la Sucursal <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="nitSucursal" name="nitSucursal" required placeholder="Ej: 900123456-1">
+                <label for="nombreCompania" class="form-label">Nombre de la Compañía <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="nombreCompania" name="nombreCompania" required>
               </div>
               <div class="col-md-6 mb-3">
-                <label for="direccionSucursal" class="form-label">Dirección <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="direccionSucursal" name="direccionSucursal" required placeholder="Ej: Calle 45 #23-12">
+                <label for="nitCompania" class="form-label">NIT de la Compañía <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="nitCompania" name="nitCompania" required>
               </div>
             </div>
             <div class="row">
               <div class="col-md-6 mb-3">
-                <label for="emailSucursal" class="form-label">Email <span class="text-danger">*</span></label>
-                <input type="email" class="form-control" id="emailSucursal" name="emailSucursal" required placeholder="Ej: sucursal@empresa.com">
+                <label for="direccionCompania" class="form-label">Dirección de la Compañía <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="direccionCompania" name="direccionCompania" required>
               </div>
               <div class="col-md-6 mb-3">
-                <label for="nroContacto" class="form-label">Número de Contacto (Celular) <span class="text-danger">*</span></label>
-                <input type="tel" class="form-control" id="nroContacto" name="nroContacto" required placeholder="Ej: 3001234567">
+                <label for="emailCompania" class="form-label">Email de la Compañía <span class="text-danger">*</span></label>
+                <input type="email" class="form-control" id="emailCompania" name="emailCompania" required>
               </div>
             </div>
             <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="nroFijo" class="form-label">Número Fijo</label>
-                <input type="tel" class="form-control" id="nroFijo" name="nroFijo" placeholder="Ej: 6012345678">
-              </div>
               <div class="col-md-6 mb-3">
                 <label for="ciudadId" class="form-label">Ciudad <span class="text-danger">*</span></label>
                 <select class="form-select" id="ciudadId" name="ciudadId" required>
                   <option value="">Cargando ciudades...</option>
                 </select>
                 <small class="text-muted">Debe existir al menos una ciudad registrada</small>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="companiaId" class="form-label">Compañía <span class="text-danger">*</span></label>
-                <select class="form-select" id="companiaId" name="companiaId" required>
-                  <option value="">Cargando compañías...</option>
-                </select>
-                <small class="text-muted">Debe existir al menos una compañía registrada</small>
               </div>
             </div>
             <div class="row mt-3">
@@ -172,11 +118,7 @@ export class RegSucursal extends HTMLElement {
 
   handleNuevo() {
     if (this.ciudades.length === 0) {
-      alert('Debe registrar al menos una ciudad antes de crear una sucursal');
-      return;
-    }
-    if (this.companias.length === 0) {
-      alert('Debe registrar al menos una compañía antes de crear una sucursal');
+      alert('Debe registrar al menos una ciudad antes de crear una compañía');
       return;
     }
     this.disableFrm(false);
@@ -191,34 +133,33 @@ export class RegSucursal extends HTMLElement {
   }
 
   async handleGuardar() {
-    const form = this.querySelector('#frmSucursal');
+    const form = this.querySelector('#frmCompania');
     const data = Object.fromEntries(new FormData(form).entries());
     
-    // Validación de campos obligatorios
-    if (!data.nitSucursal || !data.direccionSucursal || !data.emailSucursal || 
-        !data.nroContacto || !data.ciudadId || !data.companiaId) {
+    if (!data.nombreCompania || !data.ciudadId || !data.direccionCompania || 
+        !data.emailCompania || !data.nitCompania) {
       alert('Por favor complete todos los campos obligatorios (*)');
       return;
     }
 
     // Validación de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.emailSucursal)) {
+    if (!emailRegex.test(data.emailCompania)) {
       alert('Por favor ingrese un email válido');
       return;
     }
 
     try {
-      const response = await postSucursal(data);
+      const response = await postCompania(data);
       if (response && response.id) {
         this.viewData(response.id);
         this.toggleButtons(['btnNuevo', 'btnEditar', 'btnCancelar', 'btnEliminar'], ['btnGuardar']);
-        this.disableFrm(true);
-        alert('Sucursal guardada exitosamente');
+        this.disableFrm(true); // ✅ AGREGADO
+        alert('Compañía guardada exitosamente');
       }
     } catch (error) {
       console.error('Error al guardar:', error);
-      alert('Error al guardar la sucursal');
+      alert('Error al guardar la compañía');
     }
   }
 
@@ -226,22 +167,21 @@ export class RegSucursal extends HTMLElement {
     const idView = this.querySelector('#idView').textContent;
     if (!idView) return;
 
-    const form = this.querySelector('#frmSucursal');
+    const form = this.querySelector('#frmCompania');
     const data = Object.fromEntries(new FormData(form).entries());
 
-    // Validación
-    if (!data.nitSucursal || !data.direccionSucursal || !data.emailSucursal || 
-        !data.nroContacto || !data.ciudadId || !data.companiaId) {
+    if (!data.nombreCompania || !data.ciudadId || !data.direccionCompania || 
+        !data.emailCompania || !data.nitCompania) {
       alert('Por favor complete todos los campos obligatorios (*)');
       return;
     }
 
     try {
-      await patchSucursal(data, idView);
-      alert('Sucursal actualizada exitosamente');
+      await patchCompania(data, idView);
+      alert('Compañía actualizada exitosamente');
     } catch (error) {
       console.error('Error al actualizar:', error);
-      alert('Error al actualizar la sucursal');
+      alert('Error al actualizar la compañía');
     }
   }
 
@@ -249,17 +189,17 @@ export class RegSucursal extends HTMLElement {
     const idView = this.querySelector('#idView').textContent;
     if (!idView) return;
 
-    if (!confirm('¿Está seguro de eliminar esta sucursal?')) return;
+    if (!confirm('¿Está seguro de eliminar esta compañía?')) return;
 
     try {
-      await deleteSucursal(idView);
+      await deleteCompania(idView);
       this.resetForm();
       this.disableFrm(true);
       this.toggleButtons(['btnNuevo'], ['btnGuardar', 'btnCancelar', 'btnEditar', 'btnEliminar']);
-      alert('Sucursal eliminada exitosamente');
+      alert('Compañía eliminada exitosamente');
     } catch (error) {
       console.error('Error al eliminar:', error);
-      alert('Error al eliminar la sucursal');
+      alert('Error al eliminar la compañía');
     }
   }
 
@@ -273,16 +213,16 @@ export class RegSucursal extends HTMLElement {
   }
 
   resetForm() {
-    this.querySelector('#frmSucursal').reset();
+    this.querySelector('#frmCompania').reset();
     this.querySelector('#idView').textContent = '';
   }
 
   disableFrm(disabled) {
-    const form = this.querySelector('#frmSucursal');
+    const form = this.querySelector('#frmCompania');
     Array.from(form.elements).forEach(el => {
       if (el.tagName !== 'BUTTON') el.disabled = disabled;
     });
   }
 }
 
-customElements.define("reg-sucursal", RegSucursal);
+customElements.define("reg-compania", RegCompania);

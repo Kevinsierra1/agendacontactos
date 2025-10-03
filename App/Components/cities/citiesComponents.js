@@ -1,6 +1,7 @@
-import '/App/Components/contacto/regContacto.js';
-import '/App/Components/contacto/lstContacto.js';
-export class CitiesComponent extends HTMLElement {
+import './lstCities.js';
+import './regCities.js';
+
+export class CiudadComponent extends HTMLElement {
   constructor() {
     super();
     this.render();
@@ -8,38 +9,50 @@ export class CitiesComponent extends HTMLElement {
 
   render() {
     this.innerHTML = /* html */ `
-      <style rel="stylesheet">
-        @import "./App/Components/contacto/contactoStyle.css";
+      <style>
+        .nav-tabs .nav-link.active {
+          background-color: #0d6efd;
+          color: white;
+        }
       </style>
       <ul class="nav nav-tabs">
-      <li class="nav-item">
-        <a class="nav-link active mnucontacto" aria-current="page" href="#" data-verocultar='["#regContacto",["#lstContacto"]]'>Registrar Contacto</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link mnucontacto" href="#" data-verocultar='["#lstContacto",["#regContacto"]]'>Listado de contactos</a>
-      </li>
-    </ul>
-    <div class="container" id="regContacto" style="display:block;">
-        <reg-contacto></reg-contacto>
-    </div>
-    <div class="container" id="lstContacto" style="display:none;">
-        <lst-contacto></lst-contacto>
-    </div>    
+        <li class="nav-item">
+          <a class="nav-link active mnuciudad" href="#" data-view="reg">Registrar Ciudad</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link mnuciudad" href="#" data-view="list">Listado de Ciudades</a>
+        </li>
+      </ul>
+      <div class="container" id="regCiudad" style="display:block;">
+        <reg-ciudad></reg-ciudad>
+      </div>
+      <div class="container" id="lstCiudad" style="display:none;">
+        <lst-ciudad></lst-ciudad>
+      </div>    
     `;
-    this.querySelectorAll(".mnucontacto").forEach((val, id) => {
-        val.addEventListener("click", (e)=>{
-            let data = JSON.parse(e.target.dataset.verocultar);
-            let cardVer = document.querySelector(data[0]);
-            cardVer.style.display = 'block';
-            data[1].forEach(card => {
-                let cardActual = document.querySelector(card);
-                cardActual.style.display = 'none';
-            });
-            e.stopImmediatePropagation();
-            e.preventDefault();
-        })
+    
+    this.querySelectorAll(".mnuciudad").forEach((tab) => {
+      tab.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        
+        const view = e.target.dataset.view;
+        
+        this.querySelectorAll(".mnuciudad").forEach(t => t.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        if (view === 'reg') {
+          document.querySelector('#regCiudad').style.display = 'block';
+          document.querySelector('#lstCiudad').style.display = 'none';
+        } else {
+          document.querySelector('#regCiudad').style.display = 'none';
+          document.querySelector('#lstCiudad').style.display = 'block';
+          const lstComponent = document.querySelector('lst-ciudad');
+          if (lstComponent) lstComponent.cargarCiudades();
+        }
+      });
     });
   }
 }
 
-customElements.define("cities-component", CitiesComponent);
+customElements.define("ciudad-component", CiudadComponent);

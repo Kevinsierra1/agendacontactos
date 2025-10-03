@@ -1,64 +1,64 @@
-import { getCiudades } from '../../../Apis/contact/ciudad/citiesApi.js';
 import { getRegiones } from '../../../Apis/contact/regions/regApi.js';
-export class LstCiudad extends HTMLElement {
+import { getPaises } from '../../../Apis/contact/countries/countriesApi.js';
+export class LstRegion extends HTMLElement {
   constructor() {
     super();
-    this.ciudades = [];
-    this.regiones = {};
+    this.regiones = [];
+    this.paises = {};
     this.render();
-    this.cargarCiudades();
+    this.cargarRegiones();
   }
 
-  async cargarCiudades() {
+  async cargarRegiones() {
     try {
-      const [ciudadesData, regionesData] = await Promise.all([
-        getCiudades(),
-        getRegiones()
+      const [regionesData, paisesData] = await Promise.all([
+        getRegiones(),
+        getPaises()
       ]);
       
-      this.ciudades = ciudadesData;
+      this.regiones = regionesData;
       
-      // Crear un mapa de regiones para búsqueda rápida
-      this.regiones = regionesData.reduce((acc, region) => {
-        acc[region.id] = region.nombreRegion;
+      // Crear un mapa de países para búsqueda rápida
+      this.paises = paisesData.reduce((acc, pais) => {
+        acc[pais.id] = pais.nombrePais;
         return acc;
       }, {});
       
-      this.mostrarCiudades();
+      this.mostrarRegiones();
     } catch (error) {
-      console.error('Error al cargar ciudades:', error);
+      console.error('Error al cargar regiones:', error);
       this.mostrarError();
     }
   }
 
-  mostrarCiudades() {
-    const tbody = this.querySelector('#tbodyCiudades');
+  mostrarRegiones() {
+    const tbody = this.querySelector('#tbodyRegiones');
     
-    if (this.ciudades.length === 0) {
+    if (this.regiones.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="4" class="text-center">No hay ciudades registradas</td>
+          <td colspan="4" class="text-center">No hay regiones registradas</td>
         </tr>
       `;
       return;
     }
 
-    tbody.innerHTML = this.ciudades.map(ciudad => `
+    tbody.innerHTML = this.regiones.map(region => `
       <tr>
-        <td>${ciudad.id}</td>
-        <td>${ciudad.nombreCiudad || 'N/A'}</td>
-        <td>${this.regiones[ciudad.regionId] || 'Región no encontrada'}</td>
-        <td><span class="badge bg-info">${ciudad.regionId || 'N/A'}</span></td>
+        <td>${region.id}</td>
+        <td>${region.nombreRegion || 'N/A'}</td>
+        <td>${this.paises[region.paisId] || 'País no encontrado'}</td>
+        <td><span class="badge bg-secondary">${region.paisId || 'N/A'}</span></td>
       </tr>
     `).join('');
   }
 
   mostrarError() {
-    const tbody = this.querySelector('#tbodyCiudades');
+    const tbody = this.querySelector('#tbodyRegiones');
     tbody.innerHTML = `
       <tr>
         <td colspan="4" class="text-center text-danger">
-          Error al cargar las ciudades. Por favor, intente nuevamente.
+          Error al cargar las regiones. Por favor, intente nuevamente.
         </td>
       </tr>
     `;
@@ -68,7 +68,7 @@ export class LstCiudad extends HTMLElement {
     this.innerHTML = /* html */ `
       <div class="card mt-3">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span>Listado de Ciudades</span>
+          <span>Listado de Regiones</span>
           <button class="btn btn-primary btn-sm" id="btnRecargar">
             Recargar
           </button>
@@ -79,12 +79,12 @@ export class LstCiudad extends HTMLElement {
               <thead class="table-dark">
                 <tr>
                   <th>ID</th>
-                  <th>Nombre de la Ciudad</th>
-                  <th>Región</th>
-                  <th>ID Región</th>
+                  <th>Nombre de la Región</th>
+                  <th>País</th>
+                  <th>ID País</th>
                 </tr>
               </thead>
-              <tbody id="tbodyCiudades">
+              <tbody id="tbodyRegiones">
                 <tr>
                   <td colspan="4" class="text-center">
                     <div class="spinner-border text-primary" role="status">
@@ -104,7 +104,7 @@ export class LstCiudad extends HTMLElement {
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Cargando...';
       
-      await this.cargarCiudades();
+      await this.cargarRegiones();
       
       btn.disabled = false;
       btn.innerHTML = 'Recargar';
@@ -112,4 +112,4 @@ export class LstCiudad extends HTMLElement {
   }
 }
 
-customElements.define("lst-ciudad", LstCiudad);
+customElements.define("lst-region", LstRegion);
